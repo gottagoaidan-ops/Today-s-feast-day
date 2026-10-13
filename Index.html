@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Saint of the Day</title>
+<style>
+:root{--bg:#f6f0e4;--card:#fffaf0;--ink:#2a2118;--mute:#8a7a66;--gold:#a47a2c;--line:#e3d6bd;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17130e;--card:#221c14;--ink:#f1e7d3;--mute:#a1927b;--gold:#d4a84f;--line:#3a3022}}
+:root[data-theme="dark"]{--bg:#17130e;--card:#221c14;--ink:#f1e7d3;--mute:#a1927b;--gold:#d4a84f;--line:#3a3022}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;user-select:none;-webkit-user-select:none}
+h1{font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:400;margin:0 0 6px}
+.cross{font-size:1.6rem;color:var(--gold);margin-bottom:22px}
+.row{display:grid;grid-template-columns:1fr 1.9fr 1fr;gap:10px;width:100%;max-width:640px;padding:0 12px;box-sizing:border-box;align-items:center}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px 10px;text-align:center;transition:opacity .25s,transform .25s;cursor:pointer;min-height:130px;display:flex;flex-direction:column;justify-content:center;gap:10px}
+.card.side{opacity:.55;transform:scale(.94)}
+.card.main{padding:34px 16px;min-height:230px;box-shadow:0 8px 30px rgba(0,0,0,.12);border-color:var(--gold);cursor:default}
+.lbl{font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);font-family:-apple-system,system-ui,sans-serif}
+.main .lbl{color:var(--gold)}
+.name{font-size:.95rem;line-height:1.25}
+.main .name{font-size:1.8rem;line-height:1.2}
+.date{font-size:.75rem;color:var(--mute);font-family:-apple-system,system-ui,sans-serif}
+.main .date{font-size:.9rem}
+.out{animation:f .3s}
+@keyframes f{from{opacity:0;transform:translateX(var(--dx,0))}to{opacity:1;transform:none}}
+button{margin-top:22px;background:none;border:1px solid var(--gold);color:var(--gold);padding:8px 20px;border-radius:999px;font:inherit;font-size:.85rem;cursor:pointer;visibility:hidden}
+button.show{visibility:visible}
+.hint{margin-top:14px;font-size:.7rem;color:var(--mute);font-family:-apple-system,system-ui,sans-serif}
+</style>
+</head>
+<body>
+<h1>Saint of the Day</h1>
+<div class="cross">&#10013;</div>
+<div class="row" id="row"></div>
+<button id="today">Back to today</button>
+<div class="hint">Swipe or tap the sides to browse</div>
+<script>
+var D=[
+"Mary, Mother of God|Sts. Basil the Great & Gregory Nazianzen|St. Genevieve|St. Elizabeth Ann Seton|St. John Neumann|St. André Bessette|St. Raymond of Penyafort|St. Severinus of Noricum|St. Adrian of Canterbury|St. Gregory of Nyssa|St. Theodosius the Cenobiarch|St. Marguerite Bourgeoys|St. Hilary of Poitiers|St. Felix of Nola|St. Paul the Hermit|St. Marcellus I|St. Anthony of Egypt|St. Prisca|St. Marius|St. Fabian|St. Agnes|St. Vincent of Saragossa|St. Marianne Cope|St. Francis de Sales|Conversion of St. Paul|Sts. Timothy and Titus|St. Angela Merici|St. Thomas Aquinas|St. Gildas the Wise|St. Martina|St. John Bosco",
+"St. Brigid of Ireland|Presentation of the Lord|St. Blaise|St. Veronica|St. Agatha|St. Paul Miki & Companions|St. Colette|St. Jerome Emiliani|St. Apollonia|St. Scholastica|Our Lady of Lourdes|St. Benedict of Aniane|St. Catherine de' Ricci|Sts. Cyril and Methodius|St. Claude de la Colombière|St. Onesimus|Seven Founders of the Servite Order|St. Simeon of Jerusalem|St. Conrad of Piacenza|Sts. Jacinta and Francisco Marto|St. Peter Damian|Chair of St. Peter|St. Polycarp|St. Praetextatus|St. Walburga|St. Alexander of Alexandria|St. Gabriel of Our Lady of Sorrows|St. Romanus of Condat|St. John Cassian",
+"St. David of Wales|St. Agnes of Bohemia|St. Katharine Drexel|St. Casimir|St. John Joseph of the Cross|St. Fridolin|Sts. Perpetua and Felicity|St. John of God|St. Frances of Rome|St. John Ogilvie|St. Eulogius of Córdoba|St. Maximilian|St. Euphrasia|St. Matilda|St. Louise de Marillac|St. Heribert|St. Patrick|St. Cyril of Jerusalem|St. Joseph|St. Cuthbert|St. Nicholas of Flüe|St. Nicholas Owen|St. Turibius of Mogrovejo|St. Oscar Romero|Annunciation of the Lord|St. Ludger|St. John of Egypt|St. Tutilo|St. Ludolf|St. John Climacus|St. Balbina",
+"St. Hugh of Grenoble|St. Francis of Paola|St. Richard of Chichester|St. Isidore of Seville|St. Vincent Ferrer|St. Crescentia|St. John Baptist de La Salle|St. Julie Billiart|St. Waldetrudis|St. Fulbert|St. Stanislaus|St. Zeno|St. Martin I|St. Lidwina|St. Crescentius|St. Bernadette Soubirous|St. Benedict Joseph Labre|St. Apollonius|St. Leo IX|St. Agnes of Montepulciano|St. Anselm|St. Soter|St. George|St. Fidelis of Sigmaringen|St. Mark|Sts. Cletus and Marcellinus|St. Zita|St. Peter Chanel|St. Catherine of Siena|St. Pius V",
+"St. Joseph the Worker|St. Athanasius|Sts. Philip and James|St. Florian|St. Hilary of Arles|St. Dominic Savio|St. Rose Venerini|St. Peter of Tarentaise|St. Pachomius|St. Damien of Molokai|St. Ignatius of Laconi|Sts. Nereus and Achilleus|Our Lady of Fatima|St. Matthias|St. Isidore the Farmer|St. Brendan|St. Paschal Baylon|St. John I|St. Peter Celestine|St. Bernardine of Siena|St. Christopher Magallanes|St. Rita of Cascia|St. Desiderius|St. Vincent of Lérins|St. Bede the Venerable|St. Philip Neri|St. Augustine of Canterbury|St. Germanus of Paris|St. Paul VI|St. Joan of Arc|Visitation of the Blessed Virgin Mary",
+"St. Justin Martyr|Sts. Marcellinus and Peter|St. Charles Lwanga & Companions|St. Francis Caracciolo|St. Boniface|St. Norbert|St. Robert of Newminster|St. Medard|St. Ephrem|St. Landericus|St. Barnabas|St. Leo III|St. Anthony of Padua|St. Methodius of Constantinople|St. Germaine Cousin|St. John Francis Regis|St. Rainerius|St. Gregory Barbarigo|St. Romuald|St. Silverius|St. Aloysius Gonzaga|St. Paulinus of Nola|St. Joseph Cafasso|Nativity of St. John the Baptist|St. Prosper of Aquitaine|St. Josemaría Escrivá|St. Cyril of Alexandria|St. Irenaeus|Sts. Peter and Paul|First Martyrs of Rome",
+"St. Junípero Serra|Sts. Processus and Martinian|St. Thomas|St. Elizabeth of Portugal|St. Anthony Zaccaria|St. Maria Goretti|St. Pantaenus|St. Kilian|St. Augustine Zhao Rong & Companions|St. Amalberga|St. Benedict|St. John Gualbert|St. Henry|St. Kateri Tekakwitha|St. Bonaventure|Our Lady of Mount Carmel|St. Alexis|St. Camillus de Lellis|St. Macrina the Younger|St. Apollinaris|St. Lawrence of Brindisi|St. Mary Magdalene|St. Bridget of Sweden|St. Sharbel Makhlouf|St. James|Sts. Joachim and Anne|St. Pantaleon|Sts. Nazarius and Celsus|St. Martha|St. Peter Chrysologus|St. Ignatius of Loyola",
+"St. Alphonsus Liguori|St. Eusebius of Vercelli|St. Lydia of Thyatira|St. John Vianney|Dedication of St. Mary Major|Transfiguration of the Lord|St. Cajetan|St. Dominic|St. Teresa Benedicta of the Cross|St. Lawrence|St. Clare|St. Jane Frances de Chantal|Sts. Pontian and Hippolytus|St. Maximilian Kolbe|Assumption of Mary|St. Stephen of Hungary|St. Hyacinth|St. Helena|St. John Eudes|St. Bernard of Clairvaux|St. Pius X|Queenship of Mary|St. Rose of Lima|St. Bartholomew|St. Louis of France|St. Elizabeth Bichier|St. Monica|St. Augustine of Hippo|Martyrdom of St. John the Baptist|St. Jeanne Jugan|St. Aidan",
+"St. Giles|St. Agricolus|St. Gregory the Great|St. Rose of Viterbo|St. Teresa of Calcutta|St. Bega|St. Regina|Nativity of Mary|St. Peter Claver|St. Nicholas of Tolentino|St. Deiniol|Holy Name of Mary|St. John Chrysostom|Exaltation of the Holy Cross|Our Lady of Sorrows|Sts. Cornelius and Cyprian|St. Robert Bellarmine|St. Joseph of Cupertino|St. Januarius|Sts. Andrew Kim & Companions|St. Matthew|St. Maurice|St. Padre Pio|St. Gerard of Csanád|St. Finbar|Sts. Cosmas and Damian|St. Vincent de Paul|St. Wenceslaus|Sts. Michael, Gabriel & Raphael|St. Jerome",
+"St. Thérèse of Lisieux|Holy Guardian Angels|St. Theodora Guérin|St. Francis of Assisi|St. Faustina Kowalska|St. Bruno|Our Lady of the Rosary|St. Pelagia|St. Denis|St. Francis Borgia|St. John XXIII|St. Wilfrid|St. Edward the Confessor|St. Callistus I|St. Teresa of Ávila|St. Margaret Mary Alacoque|St. Ignatius of Antioch|St. Luke|Sts. Isaac Jogues, Jean de Brébeuf & Companions|St. Paul of the Cross|St. Hilarion|St. John Paul II|St. John of Capistrano|St. Anthony Mary Claret|Sts. Crispin and Crispinian|St. Evaristus|St. Frumentius|Sts. Simon and Jude|St. Narcissus of Jerusalem|St. Alphonsus Rodriguez|St. Wolfgang",
+"All Saints|All Souls|St. Martin de Porres|St. Charles Borromeo|Sts. Zechariah and Elizabeth|St. Leonard of Noblac|St. Willibrord|St. Godfrey of Amiens|Dedication of St. John Lateran|St. Leo the Great|St. Martin of Tours|St. Josaphat|St. Frances Xavier Cabrini|St. Nicholas Tavelic|St. Albert the Great|St. Margaret of Scotland|St. Elizabeth of Hungary|Dedication of the Basilicas of Peter & Paul|St. Mechtilde|St. Edmund the Martyr|Presentation of Mary|St. Cecilia|St. Clement I|St. Andrew Dung-Lac & Companions|St. Catherine of Alexandria|St. Leonard of Port Maurice|St. Virgil|St. Catherine Labouré|St. Saturninus|St. Andrew",
+"St. Edmund Campion|St. Bibiana|St. Francis Xavier|St. John Damascene|St. Sabas|St. Nicholas|St. Ambrose|Immaculate Conception|St. Juan Diego|St. Eulalia of Mérida|St. Damasus I|Our Lady of Guadalupe|St. Lucy|St. John of the Cross|St. Virginia Centurione Bracelli|St. Adelaide|St. Olympias|St. Flannan|St. Anastasius I|St. Dominic of Silos|St. Peter Canisius|St. Chaeremon|St. John of Kanty|St. Irmina|Nativity of the Lord|St. Stephen|St. John the Apostle|Holy Innocents|St. Thomas Becket|St. Egwin|St. Sylvester I"
+].map(function(m){return m.split("|")});
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var off=0,row=document.getElementById("row"),btn=document.getElementById("today");
+function get(o){var d=new Date();d.setHours(12,0,0,0);d.setDate(d.getDate()+o);
+ var n=D[d.getMonth()][d.getDate()-1]||"St. Joseph";
+ return{n:n,t:DOW[d.getDay()]+", "+MON[d.getMonth()]+" "+d.getDate()}}
+function lbl(o){return o==0?"Today":o==-1?"Yesterday":o==1?"Tomorrow":o<0?Math.abs(o)+" days ago":"In "+o+" days"}
+function render(dx){row.innerHTML="";
+ [-1,0,1].forEach(function(k){var o=off+k,s=get(o),c=document.createElement("div");
+  c.className="card "+(k?"side":"main");if(dx)c.classList.add("out");c.style.setProperty("--dx",dx+"px");
+  c.innerHTML='<div class="lbl">'+lbl(o)+'</div><div class="name">'+s.n+'</div><div class="date">'+s.t+'</div>';
+  if(k)c.onclick=function(){go(k)};row.appendChild(c)});
+ btn.className=off?"show":""}
+function go(k){off+=k;render(k*40)}
+btn.onclick=function(){off=0;render(0)};
+var sx=null;
+document.addEventListener("touchstart",function(e){sx=e.touches[0].clientX},{passive:true});
+document.addEventListener("touchend",function(e){if(sx===null)return;var d=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(d)>40)go(d<0?1:-1)});
+document.addEventListener("keydown",function(e){if(e.key=="ArrowLeft")go(-1);if(e.key=="ArrowRight")go(1)});
+document.addEventListener("visibilitychange",function(){if(!document.hidden)render(0)});
+render(0);
+</script>
+</body>
+</html>
